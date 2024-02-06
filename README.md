@@ -2,26 +2,26 @@
 
 PyTLS-CA is a Python application that quickly creates self-signed TLS certificates for your local development environment.
 
-## Installation
+## Install
 
-This project uses [Poetry](https://python-poetry.org/) for dependency management. To install the project and its dependencies, run:
+You can install PyTLS-CA using pip:
 
 ```sh
-poetry install
+pip install pytls-ca
 ```
 
 ## Usage
 
-You can run the application with the following command:
-
-```sh
-poetry run pytls
-```
-
 You can specify options like the CA name, the services for which to generate certificates, and the output directory. For example:
 
 ```sh
-poetry run pytls -n 'My Custom CA' -s service1 -s service2 -d './certificates'
+pytls -n 'My Custom CA' -s example.com -s api.example.com -d './certs'
+```
+
+If you have existing CA certificates, you can specify the paths to the CA certificate and key.
+
+```sh
+pytls --ca-cert './certs/ca.crt' --ca-key './certs/ca.key' -s example.com -s api.example.com
 ```
 
 ## Options
@@ -29,7 +29,25 @@ poetry run pytls -n 'My Custom CA' -s service1 -s service2 -d './certificates'
 - `-n`, `--ca-name`: The subject for the CA certificate. Defaults to `PyTLS CA`.
 - `-s`, `--services`: The services for which to generate certificates. Can be specified multiple times for multiple services.
 - `-d`, `--output-directory`: The directory in which to save the generated certificates. Defaults to `./certificates`.
+- `--ca-cert`: The path to an existing CA certificate. If specified, the CA certificate will be used to sign the generated certificates.
+- `--ca-key`: The path to an existing CA key. If specified, the CA key will be used to sign the generated certificates.
+- `-h`, `--help`: Show the help message and exit.
 
-## Development
+# Development
+
+This project uses [Poetry](https://python-poetry.org/) for dependency management. To install the project and its dependencies, run:
+
+```sh
+poetry install
+```
 
 This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and code formatting.
+
+### Publishing
+
+To publish a new version of the package, run:
+
+```sh
+poetry config pypi-token.pypi <token>
+poetry publish --build
+```

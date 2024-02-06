@@ -9,6 +9,14 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.extensions import SubjectAlternativeName
 
 
+def load_ca_cert(ca_cert: str, ca_key: str) -> (rsa.RSAPrivateKey, x509.Certificate):
+    """Loads an existing CA certificate and key from files."""
+    with open(ca_cert, "rb") as cert_file, open(ca_key, "rb") as key_file:
+        cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
+        key = serialization.load_pem_private_key(key_file.read(), None, default_backend())
+    return key, cert
+
+
 def generate_ca_cert(subject: str) -> (rsa.RSAPrivateKey, x509.Certificate):
     """Generates a self-signed CA certificate."""
     ca_subject = x509.Name([x509.NameAttribute(x509.OID_COMMON_NAME, subject)])
