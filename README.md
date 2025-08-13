@@ -24,6 +24,12 @@ If you have existing CA certificates, you can specify the paths to the CA certif
 pytls --ca-cert './certs/ca.crt' --ca-key './certs/ca.key' -s example.com -s api.example.com
 ```
 
+You can verify your certificate information with openssl:
+
+```sh
+openssl x509 -noout -text -in ./certs/example.com.crt
+```
+
 ## Options
 
 - `-n`, `--ca-name`: The subject for the CA certificate. Defaults to `PyTLS CA`.

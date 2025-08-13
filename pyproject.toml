@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pytls-ca"
-version = "0.0.5"
+version = "0.0.6"
 description = "Quickly create self-signed TLS certificates for your local development environment."
 authors = ["Rodney Rodriguez"]
 repository = "https://github.com/rodneyxr/pytls-ca"

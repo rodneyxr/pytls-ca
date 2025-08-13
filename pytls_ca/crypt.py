@@ -7,9 +7,10 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.extensions import SubjectAlternativeName
+from typing import List, Optional, Tuple
 
 
-def load_ca_cert(ca_cert: str, ca_key: str) -> (rsa.RSAPrivateKey, x509.Certificate):
+def load_ca_cert(ca_cert: str, ca_key: str) -> Tuple[rsa.RSAPrivateKey, x509.Certificate]:
     """Loads an existing CA certificate and key from files."""
     with open(ca_cert, "rb") as cert_file, open(ca_key, "rb") as key_file:
         cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
@@ -17,7 +18,7 @@ def load_ca_cert(ca_cert: str, ca_key: str) -> (rsa.RSAPrivateKey, x509.Certific
     return key, cert
 
 
-def generate_ca_cert(subject: str) -> (rsa.RSAPrivateKey, x509.Certificate):
+def generate_ca_cert(subject: str) -> Tuple[rsa.RSAPrivateKey, x509.Certificate]:
     """Generates a self-signed CA certificate."""
     ca_subject = x509.Name([x509.NameAttribute(x509.OID_COMMON_NAME, subject)])
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
@@ -34,8 +35,11 @@ def generate_ca_cert(subject: str) -> (rsa.RSAPrivateKey, x509.Certificate):
 
 
 def generate_server_cert(
-    ca_key: rsa.RSAPrivateKey, ca_cert: x509.Certificate, subject: str
-) -> (rsa.RSAPrivateKey, x509.Certificate):
+    ca_key: rsa.RSAPrivateKey,
+    ca_cert: x509.Certificate,
+    subject: str,
+    sans: Optional[List[str]] = None,
+) -> Tuple[rsa.RSAPrivateKey, x509.Certificate]:
     """Generates a server certificate signed by the CA."""
 
     server_subject = x509.Name(
@@ -51,10 +55,12 @@ def generate_server_cert(
     cert = cert.serial_number(x509.random_serial_number())
     cert = cert.not_valid_before(datetime.datetime.now(timezone.utc))
     cert = cert.not_valid_after(datetime.datetime.now(timezone.utc) + timedelta(days=365))
-    cert = cert.add_extension(
-        SubjectAlternativeName([x509.DNSName(server_subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value)]),
-        critical=False,
-    )
+    # Build Subject Alternative Names: default to CN if not provided
+    if sans is None:
+        alt_names = [server_subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value]
+    else:
+        alt_names = sans
+    cert = cert.add_extension(SubjectAlternativeName([x509.DNSName(name) for name in alt_names]), critical=False)
     cert = cert.sign(ca_key, hashes.SHA256(), default_backend())
     return key, cert
 

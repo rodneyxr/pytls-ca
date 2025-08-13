@@ -30,15 +30,28 @@ def cli(ca_name, services, ca_cert, ca_key, output_directory):
 
     # Generate the server certificates for each service
     for service in services:
+        # Handle wildcard services
+        # If service starts with '*.', use base domain for CN and include wildcard in SANs
+        if service.startswith('*.'):
+            base_domain = service[2:]
+            cn = base_domain
+            sans = [service, base_domain]
+            filename = service.replace('*', 'wildcard')
+        else:
+            cn = service
+            sans = [service]
+            filename = service
+
         service_key, service_cert = generate_server_cert(
             ca_key=ca_key,
             ca_cert=ca_cert,
-            subject=service,
+            subject=cn,
+            sans=sans,
         )
 
-        # Write the certificate and key to files
-        create_cert_file(service_cert, service, output_directory)
-        create_key_file(service_key, service, output_directory)
+        # Write the certificate and key to files (map '*' to 'wildcard' in filenames)
+        create_cert_file(service_cert, filename, output_directory)
+        create_key_file(service_key, filename, output_directory)
 
     click.echo("Certificates created in: " + os.path.abspath(output_directory))
 
